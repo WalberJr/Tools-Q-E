@@ -1,0 +1,71 @@
+#!/usr/bin/octave -qf
+
+%LIMPANDO
+
+clc;
+clear all; 
+close all;
+format('long','g')
+%==========================================================================
+%CABEÇALHO
+
+Exemple1 = 'GOE_6.30_a.dat';
+Exemple2 = 7.6993;
+Exemple3 = 'DOS';
+l = 0;
+donnees = {'Entre com o nome do arquivo: ', ...
+           'Entre com a energia de Fermi: ', ...
+           'Entre com o titulo da figura: ' };
+titre = 'DOS';
+default = {num2str(Exemple1),num2str(Exemple2),num2str(Exemple3)};
+nom = inputdlg(donnees, titre,l,default);
+if size(nom) ~= 0;
+  Data = num2str(nom{1});
+  EF = str2num(nom{2});
+  Titulo = num2str(nom{3});
+end
+%Vrificação de leitura
+fid = fopen(Data);
+if all(fgetl(fid) == -1)
+  warndlg('Arquivo vazio','!! Warning !!')
+  break;
+else
+  fseek(fid,0,-1); % rewind it
+  DOS = load(Data);
+  FermiEnergy = EF;
+%===============================================================================
+% PLOT
+
+  figure(1)
+  hold on
+  plot(DOS(:,1)-FermiEnergy,DOS(:,2),'Color',[0. 0. 0.],'LineWidth',2.0)
+  area(min(1,DOS(:,1)-FermiEnergy), max(DOS(:,2), 0), 0, 'EdgeColor', 'none', 'FaceColor', [.7 .7 .7])
+  plot([0,0],[0,100],'Color',[0.97 0.36 0.12],'LineStyle','-','LineWidth',2.5)
+  
+  xlabel('\epsilon - \epsilon_F (eV)','FontSize', 18)
+  set(gca,'FontSize',18)
+  set(gca,'YTickLabel',{''})
+  ylabel('DOS (Arb. Units)','FontSize', 18)
+  title(Titulo, 'FontSize',22)
+  legend('DOS','Location','NorthEast');
+  grid on;
+  box on;
+  axis([-10 10 0 max(DOS(:,2))])
+  hold off
+%===============================================================================
+% SALVANDO
+  choice = questdlg('Gostaria de salvar?', ...
+	'Salvar', ...
+	'Sim, por favor!','Não, obrigado.','Não, obrigado.');
+  % Handle response
+  switch choice
+    case 'Sim, por favor!'
+      saveas(figure(1),Titulo,'jpeg')
+      dessert = 1;
+      msgbox('Salvo com sucesso','Salvo');
+      close all;
+      case 'Não, obrigado.'
+        break;
+        dessert = 0;
+      end
+    end
